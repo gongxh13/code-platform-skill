@@ -59,7 +59,7 @@ module.exports = {
 
   // 文件路径
   PATHS: {
-    CONFIG_FILE: '.agentdev/config.json',
+    CONFIG_FILE: './code-platform-config.json',
     LOG_DIR: 'logs'
   }
 };

@@ -1,7 +1,7 @@
 {
-  "name": "@adt/gitcode-api-scripts",
+  "name": "@code-platform/api-scripts",
   "version": "1.0.0",
-  "description": "GitCode API命令行工具",
+  "description": "通用代码仓平台API命令行工具",
   "main": "src/index.js",
   "bin": {
     "platform-api": "./bin/platform-api.js"
