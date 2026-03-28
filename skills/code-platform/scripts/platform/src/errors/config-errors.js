@@ -53,10 +53,10 @@ class ConfigValidationError extends ConfigError {
       
       if (isInSkillDir) {
         message += '\n\n提示: 检测到您在技能安装目录中运行命令。';
-        message += '\n请切换到项目根目录（包含 .agentdev/config.json 的目录）再运行命令。';
+        message += '\n请切换到项目根目录（包含 code-platform-config.json 的目录）再运行命令。';
         message += '\n或者使用 /adt:init 命令初始化项目配置。';
       } else {
-        message += '\n\n提示: 未找到配置文件 .agentdev/config.json 或配置不完整。';
+        message += '\n\n提示: 未找到配置文件 code-platform-config.json 或配置不完整。';
         message += '\n请确保在当前项目根目录下运行命令，或使用 /adt:init 初始化配置。';
       }
     }

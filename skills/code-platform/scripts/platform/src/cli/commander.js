@@ -14,7 +14,7 @@ program
   .name('platform-api')
   .description('Platform API CLI Tool - Supports GitHub, GitCode, GitLab, etc.')
   .version(version)
-  .option('-c, --config <path>', 'Config file path', '.agentdev/config.json')
+  .option('-c, --config <path>', 'Config file path', './code-platform-config.json')
   .option('-p, --platform <platform>', 'Platform type (github/gitcode/gitlab)', 'gitcode')
   .option('--token <token>', 'API token (overrides config)')
   .option('-o, --owner <owner>', 'Repository owner (overrides config)')
@@ -312,7 +312,7 @@ program.on('--help', () => {
   console.log('  $ gitcode-api list-issues --state open --format json');
   console.log('');
   console.log(chalk.cyan('Configuration:'));
-  console.log('  Config file location: .agentdev/config.json');
+  console.log('  Config file location: ./code-platform-config.json');
   console.log('  Required fields: token, owner, repo');
   console.log('  Optional fields: mode, platformType, targetBranch');
 });

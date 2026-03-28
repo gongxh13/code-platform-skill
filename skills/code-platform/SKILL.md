@@ -77,3 +77,45 @@ platform-api list-prs --state open
 | `list-prs` | List PRs |
 
 Full help: `platform-api --help`
+
+## Initialization
+
+When configuration is missing, follow these steps to initialize:
+
+### 1. Check Existing Configuration
+- Check if `./code-platform-config.json` exists:
+  ```bash
+  ls -la code-platform-config.json
+  ```
+- If exists, use it directly; otherwise proceed with initialization.
+
+### 2. Get Repository Information
+- Check if current directory is a git repository:
+  ```bash
+  git remote get-url origin
+  ```
+- Parse the URL to extract owner and repo:
+  - SSH: `git@host:owner/repo.git`
+  - HTTPS: `https://host/owner/repo`
+
+### 3. Detect Platform
+- Auto-detect platform from remote URL:
+  - `atomgit.com` or `gitcode.com` → `gitcode`
+  - `github.com` → `github`
+  - `gitlab.com` → `gitlab`
+
+### 4. Collect Token
+- Ask user for personal access token:
+  - For GitCode: Create token at https://gitcode.com/profile/token with 'api' scope
+  - For GitHub: Create token at https://github.com/settings/tokens with 'repo' scope
+
+### 5. Initialize Configuration
+- Run the init script:
+  ```bash
+  node skills/code-platform/scripts/init-config.js \
+    --token "your-token" \
+    --owner "owner-name" \
+    --repo "repo-name" \
+    --platform gitcode
+  ```
+- Add `code-platform-config.json` to `.gitignore`

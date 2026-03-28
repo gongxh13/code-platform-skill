@@ -76,10 +76,10 @@ class BaseCommand {
           
           if (isInSkillDir) {
             errorMessage += '\n\n提示: 检测到您在技能安装目录中运行命令。';
-            errorMessage += '\n请切换到项目根目录（包含 .agentdev/config.json 的目录）再运行命令。';
+            errorMessage += '\n请切换到项目根目录（包含 code-platform-config.json 的目录）再运行命令。';
             errorMessage += '\n或者使用 /adt:init 命令初始化项目配置。';
           } else {
-            errorMessage += '\n\n提示: 未找到配置文件 .agentdev/config.json。';
+            errorMessage += '\n\n提示: 未找到配置文件 code-platform-config.json。';
             errorMessage += '\n请确保在当前项目根目录下运行命令，或使用 /adt:init 初始化配置。';
           }
         }

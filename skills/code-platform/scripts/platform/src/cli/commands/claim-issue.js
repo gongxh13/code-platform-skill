@@ -27,7 +27,7 @@ class ClaimIssueCommand extends BaseCommand {
 
     const assignee = this.configManager.get('forkOwner');
     if (!assignee) {
-      throw new Error('No fork.owner configured in config. Please configure fork.owner in .agentdev/config.json');
+      throw new Error('No forkOwner configured in config. Please configure forkOwner in code-platform-config.json');
     }
 
     const reporterConfig = this.configManager.get('eventReporter') || {};

@@ -34,7 +34,7 @@ class PhaseReportCommand extends BaseCommand {
       const owner = this.configManager.get('owner');
       const repository = this.configManager.get('repository');
       if (!owner || !repository) {
-        throw new Error('Missing required configuration. Please ensure you are running the script in a project directory that contains .agentdev/config.json with "owner" and "repository" configured.');
+        throw new Error('Missing required configuration. Please ensure you are running the script in a project directory that contains code-platform-config.json with "owner" and "repo" configured.');
       }
 
       const reporter = new EventReporter({
