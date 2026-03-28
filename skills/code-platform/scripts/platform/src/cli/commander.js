@@ -148,33 +148,10 @@ program
     }
   });
 
-// Phase Report command - Report phase status without executing git
-program
-  .command('phase-report')
-  .description('Report phase status (start/complete) to visualization dashboard')
-  .requiredOption('-p, --phase <phase>', 'Phase name: design, development, testing')
-  .requiredOption('-i, --issue <number>', 'Issue number for phase reporting')
-  .option('-s, --status <status>', 'Status: start or complete (default: complete)')
-  .option('-u, --user-id <id>', 'User ID for reporting')
-  .option('--format <format>', 'Output format (text/json/table/concise)', 'concise')
-  .action(async (options) => {
-    try {
-      const { PhaseReportCommand } = require('./commands');
-      const commandInstance = new PhaseReportCommand({ ...program.opts(), ...options });
-      await commandInstance.execute(options);
-    } catch (error) {
-      console.error(chalk.red('✗ Phase report failed:'), error.message);
-      if (program.opts().verbose) {
-        console.error(error.stack);
-      }
-      process.exit(1);
-    }
-  });
-
-// Git Exec command (legacy - executes git but does NOT report phase)
+// Git Exec command
 program
   .command('git-exec')
-  .description('[DEPRECATED] Execute git commands without phase reporting')
+  .description('Execute git commands')
   .argument('<command>', 'Git command to execute (use quotes for multi-word commands)')
   .option('--format <format>', 'Output format (text/json/table/concise)', 'concise')
   .action(async (command, options) => {
@@ -184,6 +161,29 @@ program
       await commandInstance.execute({ command, ...options });
     } catch (error) {
       console.error(chalk.red('✗ Execution failed:'), error.message);
+      if (program.opts().verbose) {
+        console.error(error.stack);
+      }
+      process.exit(1);
+    }
+  });
+
+// Init command - Initialize platform configuration
+program
+  .command('init')
+  .description('Initialize platform configuration')
+  .requiredOption('--token <token>', 'Personal access token')
+  .requiredOption('--owner <owner>', 'Repository owner')
+  .requiredOption('--repo <repo>', 'Repository name')
+  .option('--platform <platform>', 'Platform type (gitcode/github)', 'gitcode')
+  .option('--output <path>', 'Output config file path', './code-platform-config.json')
+  .action(async (options) => {
+    try {
+      const { InitConfigCommand } = require('./commands');
+      const command = new InitConfigCommand({ ...program.opts(), ...options });
+      await command.execute();
+    } catch (error) {
+      console.error(chalk.red('✗ Init failed:'), error.message);
       if (program.opts().verbose) {
         console.error(error.stack);
       }
@@ -304,12 +304,14 @@ program
 program.on('--help', () => {
   console.log('');
   console.log(chalk.cyan('Examples:'));
-  console.log('  $ gitcode-api create-issue --title "New Feature" --description "Description"');
-  console.log('  $ gitcode-api update-issue 123 --state closed');
-  console.log('  $ gitcode-api update-issue --id 123 --state closed');
-  console.log('  $ gitcode-api get-issue --id 456 --format json');
-  console.log('  $ gitcode-api create-pr --source-branch feat/new --target-branch main --title "New Feature PR"');
-  console.log('  $ gitcode-api list-issues --state open --format json');
+  console.log('  $ platform-api init --token <token> --owner <owner> --repo <repo> --platform gitcode');
+  console.log('  $ platform-api create-issue --title "New Feature" --description "Description"');
+  console.log('  $ platform-api update-issue 123 --state closed');
+  console.log('  $ platform-api update-issue --id 123 --state closed');
+  console.log('  $ platform-api get-issue --id 456 --format json');
+  console.log('  $ platform-api create-pr --source-branch feat/new --target-branch main --title "New Feature PR"');
+  console.log('  $ platform-api list-issues --state open --format json');
+  console.log('  $ platform-api list-prs --state open');
   console.log('');
   console.log(chalk.cyan('Configuration:'));
   console.log('  Config file location: ./code-platform-config.json');

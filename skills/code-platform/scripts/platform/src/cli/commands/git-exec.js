@@ -1,7 +1,6 @@
 /**
  * Git Executor Command
- * Executes git commands without phase reporting
- * Note: Use phase-report command separately for phase status reporting
+ * Executes git commands
  */
 
 const BaseCommand = require('./base');

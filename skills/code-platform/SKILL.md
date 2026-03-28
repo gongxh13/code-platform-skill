@@ -67,6 +67,7 @@ platform-api list-prs --state open
 
 | Command | Description |
 |---------|-------------|
+| `init` | Initialize platform configuration |
 | `create-issue` | Create new Issue |
 | `get-issue` | Get Issue details |
 | `claim-issue` | Claim Issue (assign to fork.owner) |
@@ -110,9 +111,9 @@ When configuration is missing, follow these steps to initialize:
   - For GitHub: Create token at https://github.com/settings/tokens with 'repo' scope
 
 ### 5. Initialize Configuration
-- Run the init script (auto-detects fork/non-fork):
+- Run the init command (auto-detects fork/non-fork):
   ```bash
-  node skills/code-platform/scripts/platform/init-config.js \
+  node skills/code-platform/scripts/platform/bin/platform-api.js init \
     --token "your-token" \
     --owner "owner-name" \
     --repo "repo-name" \
@@ -121,15 +122,9 @@ When configuration is missing, follow these steps to initialize:
 - Add `code-platform-config.json` to `.gitignore`
 
 ### Fork Detection
-The init script automatically detects whether the repository is a fork:
+The init command automatically detects whether the repository is a fork:
 - **Fork mode**: Config includes `upstream.owner` and `upstream.repo`
 - **Non-fork mode**: Config is simpler without upstream info
-
-Use `--no-detect-fork` to skip fork detection:
-```bash
-node skills/code-platform/scripts/platform/init-config.js \
-  --token "token" --owner "owner" --repo "repo" --no-detect-fork
-```
 
 ### Configuration File Structure
 

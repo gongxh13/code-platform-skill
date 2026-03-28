@@ -192,30 +192,14 @@ class ConfigManager {
     const configPath = this.options.configPath;
 
     try {
-      // 检查文件是否存在
       await fs.access(configPath);
-      logger.debug(`使用指定的配置文件: ${configPath}`);
+      logger.debug('使用指定的配置文件: ' + configPath);
       return this._readAndParseConfig(configPath);
     } catch (error) {
-      // 文件不存在，尝试向上查找
       if (error.code === 'ENOENT') {
-        logger.debug(`配置文件不存在: ${configPath}，尝试向上查找`);
-
-        // 从当前工作目录向上查找配置文件
-        const foundPath = await this._findConfigFile(process.cwd(), 'code-platform-config.json');
-        if (foundPath) {
-          logger.debug(`使用找到的配置文件: ${foundPath}`);
-          return this._readAndParseConfig(foundPath);
-        }
-
-        // 文件不存在，记录详细的错误信息
-        logger.warn('配置文件未找到，请检查以下事项:', {
-          searchedFrom: process.cwd(),
-          configFile: 'code-platform-config.json',
-          suggestion: '请在当前项目根目录下运行初始化命令'
+        logger.warn('配置文件未找到: ' + configPath, {
+          suggestion: '请在项目根目录下运行初始化命令'
         });
-        
-        // 返回空对象，让验证器处理缺失字段的错误
         return {};
       }
 

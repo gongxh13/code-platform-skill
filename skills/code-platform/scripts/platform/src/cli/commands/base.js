@@ -73,15 +73,32 @@ class BaseCommand {
         if (!hasConfigFile || (!platformConfig.token && !platformConfig.owner && !platformConfig.repository)) {
           const cwd = process.cwd();
           const isInSkillDir = cwd.includes('/.config/opencode/skills/') || cwd.includes('/.claude/skills/');
+          const configPath = this.options.config;
+          const isAbsoluteConfig = configPath && (configPath.startsWith('/') || configPath.match(/^[A-Za-z]:/));
           
-          if (isInSkillDir) {
-            errorMessage += '\n\n提示: 检测到您在技能安装目录中运行命令。';
-            errorMessage += '\n请切换到项目根目录（包含 code-platform-config.json 的目录）再运行命令。';
-            errorMessage += '\n或者使用 /adt:init 命令初始化项目配置。';
+          
+          
+          let guidance = '\n\n[MODEL_GUIDANCE]';
+          if (isAbsoluteConfig) {
+            guidance += '\n使用了绝对路径配置文件: ' + configPath;
+            guidance += '\n请检查配置文件是否存在或路径是否正确。';
+            guidance += '\n可以使用 --config ./code-platform-config.json 使用相对路径。';
+          } else if (isInSkillDir) {
+            guidance += '\n检测到您在技能安装目录中运行命令。';
+            guidance += '\n请切换到项目根目录（包含 code-platform-config.json 的目录）再运行命令。';
+            guidance += '\n模型应执行以下步骤初始化配置:';
+            guidance += '\n1. 运行 `git remote get-url origin` 获取仓库信息';
+            guidance += '\n2. 询问用户: token 和平台类型(gitcode/github)';
+            guidance += '\n3. 调用: node skills/code-platform/scripts/platform/bin/platform-api.js init --token "TOKEN" --platform "PLATFORM" --owner "OWNER" --repo "REPO"';
           } else {
-            errorMessage += '\n\n提示: 未找到配置文件 code-platform-config.json。';
-            errorMessage += '\n请确保在当前项目根目录下运行命令，或使用 /adt:init 初始化配置。';
+            guidance += '\n未找到配置文件 code-platform-config.json。';
+            guidance += '\n模型应执行以下步骤初始化配置:';
+            guidance += '\n1. 运行 `git remote get-url origin` 获取仓库信息(解析出 owner/repo)';
+            guidance += '\n2. 询问用户: token 和平台类型(gitcode/github)';
+            guidance += '\n3. 调用: node skills/code-platform/scripts/platform/bin/platform-api.js init --token "TOKEN" --platform "PLATFORM" --owner "OWNER" --repo "REPO"';
+            guidance += '\n\n技能文档参考: skills/code-platform/SKILL.md 的 "Initialization" 章节';
           }
+          errorMessage += guidance;
         }
         
         throw new Error(errorMessage);
@@ -117,11 +134,8 @@ class BaseCommand {
    * @private
    */
   _mergeConfigWithOptions(config) {
-    // ConfigManager已经将配置提取为扁平格式
-    // 直接使用这些字段
     const merged = { ...config };
     
-    // Override with CLI options
     if (this.options.platform) {
       merged.platformType = this.options.platform;
     }
@@ -138,24 +152,32 @@ class BaseCommand {
       merged.repository = this.options.repo;
     }
     
-    // Ensure platform type is set
     if (!merged.platformType) {
-      merged.platformType = 'gitcode'; // Default
+      merged.platformType = 'gitcode';
     }
     
-    // 默认使用upstream配置（主仓库）
-    // 只有在明确指定fork时才使用fork配置
-    const effectiveOwner = merged.owner;
-    const effectiveRepo = merged.repository;
+    // Fork repository handling:
+    // - For Issue operations: use upstream owner/repo
+    // - For PR operations: use upstream owner/repo (head branch will be fork:branch)
+    // - forkOwner/forkRepo are kept for PR head branch construction
+    const isFork = merged.isFork;
+    let apiOwner = merged.owner;
+    let apiRepo = merged.repository;
     
-    // Return the structure expected by platform factory
+    if (isFork && merged.upstream) {
+      apiOwner = merged.upstream.owner;
+      apiRepo = merged.upstream.repo;
+    }
+    
     return {
       platform: merged.platformType,
       token: merged.token,
-      owner: effectiveOwner,
-      repository: effectiveRepo,
-      forkOwner: merged.forkOwner,
-      forkRepository: merged.forkRepo,
+      owner: apiOwner,
+      repository: apiRepo,
+      forkOwner: merged.owner,
+      forkRepository: merged.repository,
+      isFork: isFork,
+      upstream: merged.upstream,
       apiBaseUrl: merged.apiBaseUrl
     };
   }

@@ -6,6 +6,10 @@ const { Validator } = require('../utils/validator');
 const { ConfigValidationError } = require('../errors/config-errors');
 const schemas = require('./schemas');
 
+const FIELD_ALIASES = {
+  repo: 'repository'
+};
+
 /**
  * 配置验证器
  */
@@ -103,6 +107,21 @@ class ConfigValidator {
     return config;
   }
 
+  static _applyFieldAliases(config) {
+    if (!config || typeof config !== 'object') {
+      return config;
+    }
+
+    const result = { ...config };
+    for (const [alias, target] of Object.entries(FIELD_ALIASES)) {
+      if (result[alias] !== undefined && result[target] === undefined) {
+        result[target] = result[alias];
+        delete result[alias];
+      }
+    }
+    return result;
+  }
+
   /**
    * 合并并验证配置
    * @param {Object[]} configs - 多个配置对象
@@ -134,11 +153,14 @@ class ConfigValidator {
     // 提取扁平化配置用于验证
     const flatConfig = this._extractFlatConfig(merged);
     
-    // 验证最终配置
-    const validated = this.validateGitCodeApiConfig(flatConfig);
+    // 应用字段别名 (repo -> repository)
+    const aliasedConfig = this._applyFieldAliases(flatConfig);
     
-    // 返回原始合并配置（保持嵌套结构）
-    return merged;
+    // 验证最终配置
+    const validated = this.validateGitCodeApiConfig(aliasedConfig);
+    
+    // 将别名转换应用回原始配置
+    return this._applyFieldAliases(merged);
   }
 
   /**
@@ -172,9 +194,11 @@ class ConfigValidator {
 
     // 提取扁平化配置进行检查
     const flatConfig = this._extractFlatConfig(config);
+    // 应用字段别名
+    const aliasedConfig = this._applyFieldAliases(flatConfig);
     const required = schemas.GITCODE_API_SCHEMA.required || [];
     return required.filter(field => {
-      const value = flatConfig[field];
+      const value = aliasedConfig[field];
       return value === undefined || value === null || value === '';
     });
   }

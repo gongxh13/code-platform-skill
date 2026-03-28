@@ -11,7 +11,7 @@ const ListIssuesCommand = require('./list-issues');
 const ListPrsCommand = require('./list-prs');
 const GetIssueCommand = require('./get-issue');
 const GitExecCommand = require('./git-exec');
-const PhaseReportCommand = require('./phase-report');
+const InitConfigCommand = require('./init');
 
 module.exports = {
   CreateIssueCommand,
@@ -23,5 +23,5 @@ module.exports = {
   ListPrsCommand,
   GetIssueCommand,
   GitExecCommand,
-  PhaseReportCommand
+  InitConfigCommand
 };

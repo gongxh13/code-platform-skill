@@ -1,11 +1,8 @@
 /**
  * 创建Pull Request命令
- * 
- * 简化版：只处理API调用，PR描述由AI根据skill.md指导生成
  */
 
 const BaseCommand = require('./base');
-const EventReporter = require('../../utils/event-reporter');
 
 /**
  * 创建Pull Request命令
@@ -20,20 +17,16 @@ class CreatePrCommand extends BaseCommand {
     await this.init();
 
     try {
-      // PR描述应该由AI根据skill.md指导生成并作为参数传入
       const prDescription = options.description || '';
       
-      // Add co-authored-by ADT attribution to PR description
       const coAuthoredBy = 'co-authored-by ADT(Agent-Dev-Team)';
       const finalPrDescription = prDescription ? `${prDescription}\n\n${coAuthoredBy}` : coAuthoredBy;
       
-      // Validate source branch: should not contain username prefix (e.g., user:branch)
       if (options.sourceBranch && options.sourceBranch.includes(':')) {
         this.error('Invalid source branch format', new Error('Do not include username prefix. Use --source-branch feature/my-feature instead of --source-branch username:feature/my-feature. The script will auto-handle fork configuration.'));
         throw new Error('Invalid source branch format: please use branch name without username prefix');
       }
 
-      // Process head parameter: if forkOwner is configured and head doesn't contain colon, prepend it
       let head = options.sourceBranch;
       const forkOwner = this.configManager.get('forkOwner');
 
@@ -43,7 +36,6 @@ class CreatePrCommand extends BaseCommand {
         this.info(`Fork configuration detected, auto-converting head parameter: "${originalHead}" → "${head}"`);
       }
 
-      // Prepare PR data
       const prData = {
         title: options.title,
         body: finalPrDescription,
@@ -53,9 +45,6 @@ class CreatePrCommand extends BaseCommand {
         draft: options.draft || false
       };
 
-      
-
-      // 在quiet模式下不显示进度信息
       if (!this.options.quiet) {
         this.info('Creating Pull Request...', {
           title: prData.title,
@@ -65,10 +54,8 @@ class CreatePrCommand extends BaseCommand {
         });
       }
 
-      // Call API to create PR
       const pr = await this.api.pullRequests.create(prData);
 
-      // Link issue to PR via API (if issue number is provided)
       if (options.issue) {
         try {
           await this.api.pullRequests.linkIssue(pr.number, parseInt(options.issue, 10));
@@ -77,22 +64,6 @@ class CreatePrCommand extends BaseCommand {
         }
       }
 
-      // Report event to dashboard (if issue number is provided)
-      if (options.issue) {
-        const reporterConfig = this.configManager.get('eventReporter') || {};
-        const reporter = new EventReporter({
-          ...reporterConfig,
-          projectName: this.configManager.get('owner') + '/' + this.configManager.get('repository')
-        });
-        const userId = forkOwner || 'unknown';
-        await reporter.reportPrSubmitted(options.issue, pr.number, userId, {
-          issue_url: pr.html_url?.replace(/\/pulls\//, '/issues/'),
-          pr_url: pr.html_url,
-          pr_title: pr.title
-        });
-      }
-
-      // 在quiet模式下不显示调试信息
       if (!this.options.quiet) {
         this.info('DEBUG: API response received', { 
           pr_response: JSON.stringify(pr, null, 2)
@@ -100,15 +71,12 @@ class CreatePrCommand extends BaseCommand {
         this.info('PR creation response:', { pr: JSON.stringify(pr) });
       }
 
-      // 在quiet模式下，success方法只输出数据，不输出消息
       this.success(`Pull Request created successfully: #${pr.number || pr.id || 'N/A'} - ${pr.title || 'N/A'}`, pr);
 
-      // 如果不是quiet模式且verbose模式，输出详细信息
       if (!this.options.quiet && this.options.verbose) {
         console.log(this.formatOutput(pr));
       }
 
-      // Return PR info for other scripts
       return pr;
     } catch (error) {
       this.error('Failed to create Pull Request', error);

@@ -4,7 +4,6 @@
 
 const BaseCommand = require('./base');
 const logger = require('../../utils/logger');
-const EventReporter = require('../../utils/event-reporter');
 const CodebaseSyncService = require('../../modules/codebase-sync');
 
 /**
@@ -41,41 +40,21 @@ class CreateIssueCommand extends BaseCommand {
       // Prepare Issue data
       const issueData = {
         title: options.title,
-        body: options.description || 'No description', // AtomGit API requires body
+        body: options.description || 'No description',
       };
 
-      // 注意：create-issue不再设置assignee
-      // 如果需要指派用户，请使用claim-issue命令
-
-      // 在quiet模式下不显示进度信息
       if (!this.options.quiet) {
         this.info('Creating Issue...', { title: issueData.title });
       }
 
-      // Call API to create Issue
       const issue = await this.api.issues.create(issueData);
 
-      // Report event to dashboard
-      const reporterConfig = this.configManager.get('eventReporter') || {};
-      const reporter = new EventReporter({
-        ...reporterConfig,
-        projectName: this.configManager.get('owner') + '/' + this.configManager.get('repository')
-      });
-      const userId = this.configManager.get('forkOwner') || 'unknown';
-      await reporter.reportCreateIssue(issue.number, userId, {
-        issue_title: issue.title,
-        issue_url: issue.html_url
-      });
-
-      // 在quiet模式下，success方法只输出数据，不输出消息
       this.success(`Issue created successfully: #${issue.number} - ${issue.title}`, issue);
 
-      // 如果不是quiet模式且verbose模式，输出详细信息
       if (!this.options.quiet && this.options.verbose) {
         console.log(this.formatOutput(issue));
       }
 
-      // Return Issue info for other scripts
       return issue;
     } catch (error) {
       this.error('Failed to create Issue', error);
