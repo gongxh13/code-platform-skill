@@ -110,12 +110,54 @@ When configuration is missing, follow these steps to initialize:
   - For GitHub: Create token at https://github.com/settings/tokens with 'repo' scope
 
 ### 5. Initialize Configuration
-- Run the init script:
+- Run the init script (auto-detects fork/non-fork):
   ```bash
-  node skills/code-platform/scripts/init-config.js \
+  node skills/code-platform/scripts/platform/init-config.js \
     --token "your-token" \
     --owner "owner-name" \
     --repo "repo-name" \
     --platform gitcode
   ```
 - Add `code-platform-config.json` to `.gitignore`
+
+### Fork Detection
+The init script automatically detects whether the repository is a fork:
+- **Fork mode**: Config includes `upstream.owner` and `upstream.repo`
+- **Non-fork mode**: Config is simpler without upstream info
+
+Use `--no-detect-fork` to skip fork detection:
+```bash
+node skills/code-platform/scripts/platform/init-config.js \
+  --token "token" --owner "owner" --repo "repo" --no-detect-fork
+```
+
+### Configuration File Structure
+
+**Fork Repository:**
+```json
+{
+  "token": "...",
+  "owner": "fork-owner",
+  "repo": "fork-repo",
+  "platformType": "gitcode",
+  "isFork": true,
+  "upstream": {
+    "owner": "upstream-owner",
+    "repo": "upstream-repo"
+  },
+  "defaultBranch": "main",
+  "upstreamDefaultBranch": "main"
+}
+```
+
+**Non-fork Repository:**
+```json
+{
+  "token": "...",
+  "owner": "owner",
+  "repo": "repo",
+  "platformType": "gitcode",
+  "isFork": false,
+  "defaultBranch": "main"
+}
+```
